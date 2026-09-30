@@ -1,0 +1,1709 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Virtual Design Server</title>
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/8417/8417052.png">
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f1a2e; --panel2:#0c1526; --text:#e8eefc; --muted:#98a7c6;
+      --accent:#6d7cff; --accent2:#22c55e; --danger:#ef4444; --line:#1f2a44;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .light{
+      --bg:#f5f7ff; --panel:#ffffff; --panel2:#f1f4ff; --text:#0b1220; --muted:#4b5a7a;
+      --accent:#4f46e5; --accent2:#16a34a; --danger:#dc2626; --line:#e3e7f5;
+      --shadow: 0 16px 50px rgba(18,24,40,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(109,124,255,.22), transparent 60%),
+                  radial-gradient(900px 700px at 90% 30%, rgba(34,197,94,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:24px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+    .app{
+      width:min(1100px, 100%);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%), var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+      gap:12px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .brand h1{
+      margin:0; font-size:16px; letter-spacing:.2px;
+    }
+    .brand .sub{
+      color:var(--muted); font-size:12px;
+    }
+    .top-actions{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .chip{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.02);
+    }
+    .btn{
+      border:none; cursor:pointer;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:650;
+      color:white;
+      background:var(--accent);
+      transition:transform .05s ease, filter .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+      box-shadow:0 10px 24px rgba(109,124,255,.22);
+    }
+    .btn:active{ transform: translateY(1px) }
+    .btn.secondary{
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--line);
+      box-shadow:none;
+    }
+    .btn.good{ background:var(--accent2); box-shadow:0 10px 24px rgba(34,197,94,.18); }
+    .btn.danger{ background:var(--danger); box-shadow:0 10px 24px rgba(239,68,68,.18); }
+    .btn.small{ padding:8px 10px; border-radius:10px; font-size:13px; }
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding:12px 18px 14px;
+      border-bottom:1px solid var(--line);
+      background: var(--panel2);
+      flex-wrap:wrap;
+    }
+    .tab{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+      font-weight:650;
+      font-size:13px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .tab.active{
+      color:var(--text);
+      border-color:rgba(109,124,255,.55);
+      background:rgba(109,124,255,.12);
+    }
+    .badge{
+      font-size:12px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-family:var(--mono);
+    }
+
+    main{ padding:18px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+    .panel .head{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 12px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    }
+    .panel .head .title{
+      font-weight:750;
+      font-size:13px;
+      color:var(--text);
+      display:flex; align-items:center; gap:10px;
+    }
+    .panel .head .title span{
+      color:var(--muted);
+      font-weight:650;
+      font-family:var(--mono);
+      font-size:12px;
+    }
+    .list{ max-height: 520px; overflow:auto; }
+    .item{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      background: transparent;
+    }
+    .item:hover{ background:rgba(255,255,255,.03) }
+    .item.selected{ background:rgba(109,124,255,.10) }
+    .row{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .sender{
+      font-family:var(--mono);
+      font-size:13px;
+      color:var(--text);
+    }
+    .meta{ color:var(--muted); font-size:12px; }
+    .pill{
+      font-size:12px;
+      font-family:var(--mono);
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+      white-space:nowrap;
+    }
+    .details{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height: 420px;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      gap:8px 12px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(0,0,0,.08);
+    }
+    .k{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    .v{ font-size:14px; line-height:1.45; }
+    .v.mono{ font-family:var(--mono); }
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    input, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{ min-height: 120px; resize: vertical; }
+    .link{
+      color: var(--text);
+      text-decoration:none;
+      border-bottom:1px dashed rgba(109,124,255,.6);
+    }
+    .link:hover{ color: var(--accent) }
+
+    /* Calendar */
+    .calendar{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .cal-head{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.02);
+    }
+    .cal-head .month{
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .cal-grid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:8px;
+    }
+    .dow{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      font-family:var(--mono);
+      padding:6px 0;
+    }
+    .day{
+      border:1px solid var(--line);
+      border-radius:14px;
+      min-height: 90px;
+      padding:10px;
+      background:rgba(255,255,255,.02);
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .day.muted{ opacity:.45; }
+    .day:hover{ background:rgba(255,255,255,.04); }
+    .daynum{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .marks{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .mark{
+      font-size:12px;
+      padding:6px 8px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(109,124,255,.10);
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    .drawer{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: rgba(255,255,255,.02);
+      padding:12px;
+    }
+    .drawer h3{
+      margin:0 0 10px 0;
+      font-size:13px;
+      color:var(--muted);
+      font-family:var(--mono);
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .drawer .p{
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(0,0,0,.08);
+      margin-bottom:10px;
+    }
+    .toast{
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.78);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .toast.show{ opacity: 1; }
+    
+    /* Markdown converted HTML styling */
+    #responseHtmlDisplay h1,
+    #responseHtmlDisplay h2,
+    #responseHtmlDisplay h3,
+    #responseHtmlDisplay h4,
+    #responseHtmlDisplay h5,
+    #responseHtmlDisplay h6 {
+      margin: 16px 0 8px 0;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    #responseHtmlDisplay h1 { font-size: 24px; font-weight: 750; }
+    #responseHtmlDisplay h2 { font-size: 20px; font-weight: 700; }
+    #responseHtmlDisplay h3 { font-size: 17px; font-weight: 700; }
+    #responseHtmlDisplay h4,
+    #responseHtmlDisplay h5,
+    #responseHtmlDisplay h6 { font-size: 15px; font-weight: 650; }
+    
+    #responseHtmlDisplay p { margin: 10px 0; line-height: 1.6; color: var(--text); }
+    
+    #responseHtmlDisplay ul,
+    #responseHtmlDisplay ol {
+      margin: 10px 0 10px 20px;
+      color: var(--text);
+    }
+    #responseHtmlDisplay li { margin: 6px 0; line-height: 1.5; }
+    
+    #responseHtmlDisplay code {
+      font-family: var(--mono);
+      background: rgba(109,124,255,.12);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    #responseHtmlDisplay pre {
+      background: rgba(0,0,0,.2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    
+    #responseHtmlDisplay pre code {
+      background: none;
+      color: var(--text);
+      padding: 0;
+      border-radius: 0;
+      font-size: 12px;
+    }
+    
+    #responseHtmlDisplay blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 10px 0;
+      padding-left: 12px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    
+    #responseHtmlDisplay a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(109,124,255,.6);
+    }
+    
+    #responseHtmlDisplay a:hover {
+      color: var(--accent2);
+    }
+    
+    #responseHtmlDisplay hr {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 16px 0;
+    }
+    
+    #responseHtmlDisplay table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    #responseHtmlDisplay table th,
+    #responseHtmlDisplay table td {
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    #responseHtmlDisplay table th {
+      background: rgba(109,124,255,.12);
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <h1>Virtual Design Server</h1>
+        <div class="sub">A local, frontend-only simulation of incoming design requests → projects → deadlines.</div>
+      </div>
+      <div class="top-actions">
+        <div class="chip" id="chipStatus">Syncing…</div>
+        <button class="btn secondary small" id="themeBtn" title="Toggle theme">🌗 Theme</button>
+        <button class="btn secondary small" id="resetBtn" title="Clear all local data">🧹 Reset</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="requests">Requests <span class="badge" id="reqBadge">0</span></div>
+      <div class="tab" data-tab="projects">Projects <span class="badge" id="projBadge">0</span></div>
+      <div class="tab" data-tab="calendar">Calendar</div>
+    </div>
+
+    <main id="main"></main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+/* =========================
+   Virtual Design Server
+   Frontend-only, localStorage-based
+   ========================= */
+
+/* ---- Storage schema ----
+state = {
+  version: 1,
+  lastRequestTick: number (ms), // last time we advanced request generation tick
+  requests: [{ id, sender, mediaType, mediaKey, deadlineAt, receivedAt, status: 'pending'|'accepted'|'rejected', decidedAt?, projectId? }],
+  projects: [{ id, requestId, sender, mediaType, mediaKey, dueAt, createdAt, status: 'awaiting_details'|'active'|'done', copilotPrompt?, promptCopiedAt?, copilotChatUrl?, notes? }],
+  ui: { theme: 'dark'|'light' }
+}
+*/
+
+const STORAGE_KEY = "vds_state_v1";
+const REQUEST_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
+
+/* ---------- helpers ---------- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function fmtDateTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleString(undefined, { year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+}
+function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function uid(){
+  return (crypto?.randomUUID?.() ?? ("id_" + Math.random().toString(16).slice(2) + Date.now().toString(16)));
+}
+function daysFromNow(minDays, maxDays){
+  const days = randInt(minDays, maxDays);
+  return Date.now() + days * 24*60*60*1000;
+}
+
+/* ---------- Sender words (long-ish list) ---------- */
+const senderWords = [
+  // Abstract concepts
+  "ability","absence","access","accord","action","adventure","advice","aim","ambition","answer",
+  "balance","belief","benefit","boldness","calm","chance","change","choice","clarity","comfort",
+  "concept","courage","craft","curiosity","delight","design","detail","dream","effort","energy",
+  "focus","freedom","friendship","future","grace","growth","harmony","honor","hope","idea",
+  "insight","joy","justice","kindness","knowledge","logic","luck","memory","merit","method",
+  "motion","mystery","order","patience","peace","purpose","reason","respect","rhythm","skill",
+  "spirit","story","strength","style","success","talent","theory","thought","trust","truth",
+  "unity","value","vision","wisdom","wonder","zeal",
+
+  // Actions and movement
+  "amble","arrive","ascend","assemble","awaken","balance","bounce","build","carry","catch",
+  "charge","chase","climb","collect","connect","cruise","dance","dash","deliver","discover",
+  "dive","drift","drive","explore","fetch","float","follow","gather","glide","grow",
+  "guide","hike","hop","hurry","jog","journey","jump","launch","lead","leap",
+  "lift","march","navigate","orbit","pace","pivot","race","reach","ride","roam",
+  "roll","run","sail","seek","shift","skip","soar","spin","sprint","stand",
+  "stride","sway","sweep","swim","swing","travel","trek","turn","venture","wander",
+  "weave","whirl","zoom",
+
+  // Technology and computing
+  "adapter","algorithm","analog","android","antenna","archive","array","backup","bandwidth","binary",
+  "browser","buffer","byte","cache","camera","circuit","client","cloud","codec","console",
+  "cursor","cyber","data","database","debug","device","digital","domain","download","driver",
+  "email","engine","ethernet","fiber","filter","firewall","firmware","folder","gateway","gigabyte",
+  "hardware","interface","internet","kernel","keyboard","laptop","laser","matrix","memory","modem",
+  "module","monitor","network","node","packet","password","patch","pixel","plugin","portal",
+  "processor","program","protocol","proxy","quantum","query","reboot","robot","router","script",
+  "sensor","server","signal","socket","software","storage","stream","switch","system","tablet",
+  "terminal","token","upload","vector","version","virtual","webhook","widget","wireless","workflow",
+
+  // Science and mathematics
+  "algebra","atom","axis","biology","calculus","cell","chaos","chemistry","circle","coefficient",
+  "compound","cosine","density","diameter","dimension","electron","element","equation","factor","formula",
+  "fossil","fraction","frequency","fusion","geometry","gravity","isotope","kinetic","laboratory","latitude",
+  "longitude","mass","matter","molecule","neutron","number","particle","physics","plasma","polygon",
+  "prime","proof","proton","radius","ratio","reaction","sample","scalar","science","spectrum",
+  "sphere","statistic","tangent","theorem","triangle","variable","velocity","volume","waveform","zero",
+
+  // Space and astronomy
+  "asteroid","astronaut","cosmos","eclipse","galaxy","jupiter","lunar","mars","meteor","moon",
+  "neptune","orbit","planet","pluto","rocket","satellite","solar","spaceship","star","sun",
+  "telescope","uranus","venus","zenith",
+
+  // Music and sound
+  "accordion","alto","anthem","audio","banjo","bass","beat","bell","brass",
+  "cello","chime","chord","chorus","clarinet","drum","duet","echo","flute",
+  "guitar","harmony","harp","horn","jazz","lyric","melody","note","opera",
+  "organ","piano","piccolo","pulse","rhythm","saxophone","solo","song","sound",
+  "soprano","tempo","tenor","tone","trombone","trumpet","tuba","tune","verse",
+  "viola","violin","volume","whistle",
+
+  // Art, writing, and creativity
+  "author","brush","canvas","chapter","character","cinema","color","comic","draft",
+  "drawing","easel","epic","essay","fiction","film","gallery","illustration","ink",
+  "letter","marker","mural","novel","paint","palette","paper","paragraph","pencil",
+  "picture","plot","poem","poetry","portrait","prose","quill","scene","sculpture",
+  "sketch","story","studio","symbol","tale","theater","verse","writer",
+
+  // Architecture and places
+  "alley","apartment","arch","arena","avenue","balcony","barn","boulevard","bridge",
+  "building","cabin","castle","cathedral","cellar","chamber","chimney","city","cottage",
+  "courtyard","dome","doorway","factory","fortress","garage","garden","hall","hangar",
+  "harbor","highway","hotel","house","library","loft","market","museum","office",
+  "palace","park","plaza","porch","road","roof","school","station","street",
+  "studio","temple","theater","tower","tunnel","village","warehouse","workshop",
+
+  // Transportation and machines
+  "airplane","ambulance","bicycle","bulldozer","bus","cab","canoe","car","caravan",
+  "carriage","cart","crane","cruiser","engine","ferry","freighter","glider","helicopter",
+  "jeep","jet","kayak","locomotive","motorcycle","raft","rocket","scooter","ship",
+  "shuttle","sled","submarine","taxi","tractor","trailer","train","tram","truck",
+  "van","vessel","wagon","yacht",
+
+  // Tools and workshop items
+  "anvil","auger","battery","blade","bolt","bracket","caliper","chisel","clamp",
+  "compass","cutter","drill","file","gauge","gear","grinder","hammer","handle",
+  "hinge","hook","ladder","level","mallet","nail","needle","pliers","pulley",
+  "ruler","saw","screw","shovel","socket","spanner","spring","staple","tape",
+  "toolbox","vice","wedge","wheel","wire","wrench",
+
+  // Household objects
+  "basket","blanket","bottle","bowl","box","broom","bucket","cabinet","candle",
+  "carpet","chair","clock","closet","couch","curtain","cushion","desk","drawer",
+  "fan","faucet","frame","freezer","furnace","glass","kettle","lamp","mirror",
+  "mug","napkin","oven","pillow","plate","radio","refrigerator","shelf","sofa",
+  "spoon","stool","table","thermos","towel","tray","umbrella","vase","window",
+
+  // Clothing and accessories
+  "apron","backpack","belt","blazer","boot","bracelet","cap","cloak","coat",
+  "collar","crown","dress","glove","gown","hat","helmet","hoodie","jacket",
+  "jeans","jersey","mitten","pocket","robe","scarf","shirt","shoe","slipper",
+  "sneaker","sock","suit","sweater","tie","trouser","tunic","vest","wallet",
+  "watch",
+
+  // Food and cooking
+  "almond","apple","bagel","basil","bean","biscuit","bread","brownie","butter",
+  "cabbage","cake","caramel","carrot","cereal","cheese","cherry","chili","cinnamon",
+  "cocoa","coffee","cookie","corn","cracker","cream","curry","donut","dumpling",
+  "egg","fig","flour","garlic","ginger","grape","honey","jam","jelly",
+  "ketchup","kiwi","lasagna","lemon","lime","mango","melon","mint","muffin",
+  "mustard","noodle","nutmeg","olive","omelet","onion","orange","pancake","pasta",
+  "peach","peanut","pear","pepper","pickle","pie","pizza","plum","potato",
+  "pretzel","pudding","pumpkin","rice","salad","sandwich","sauce","soup","spice",
+  "sugar","syrup","taco","tea","toast","tomato","truffle","vanilla","waffle",
+  "walnut","yogurt",
+
+  // Games, toys, and recreation
+  "arcade","ball","balloon","bingo","block","boardgame","boomerang","bowling","card",
+  "chess","checkers","clue","controller","cube","dart","domino","drone","frisbee",
+  "game","jigsaw","joystick","kite","marble","maze","paddle","pawn","pinball",
+  "puzzle","racket","riddle","skate","skittle","spinner","swing","token","top",
+  "trampoline","trophy","yo-yo",
+
+  // Sports and athletics
+  "archer","athlete","badminton","baseball","basketball","boxing","captain","catcher",
+  "coach","cricket","cycling","diver","fencing","football","goalie","golfer",
+  "gymnast","hockey","javelin","karate","lacrosse","marathon","pitcher","racer",
+  "referee","relay","rugby","runner","skater","skiing","soccer","softball",
+  "squash","surfing","swimmer","tennis","volleyball","wrestling",
+
+  // Jobs and roles
+  "actor","advisor","analyst","architect","artist","baker","barber","builder",
+  "captain","carpenter","chef","chemist","clerk","coach","coder","composer",
+  "conductor","cook","designer","detective","doctor","driver","editor","engineer",
+  "farmer","firefighter","gardener","guide","inventor","judge","librarian","manager",
+  "mechanic","medic","merchant","musician","navigator","nurse","operator","painter",
+  "pilot","plumber","poet","printer","professor","ranger","reporter","researcher",
+  "sailor","scientist","scout","smith","surgeon","teacher","technician","translator",
+  "traveler","vendor","writer",
+
+  // Communication and language
+  "accent","alphabet","answer","article","caption","chat","codeword","comment",
+  "conversation","dialect","dictionary","grammar","headline","language","message",
+  "metaphor","nickname","phrase","question","quote","reply","sentence","signal",
+  "speech","statement","syllable","synonym","title","translation","vocabulary",
+  "voice","word",
+
+  // Business and commerce
+  "account","auction","brand","budget","buyer","capital","catalog","commerce",
+  "company","contract","credit","customer","deal","dividend","expense","export",
+  "finance","fund","income","invoice","ledger","market","merchant","order",
+  "payment","profit","receipt","retail","revenue","salary","seller","share",
+  "stock","store","supply","trade","vendor","venture",
+
+  // History and civilization
+  "artifact","banner","chronicle","colony","dynasty","empire","era","fort",
+  "heritage","kingdom","legend","manuscript","monument","myth","relic","scroll",
+  "settlement","shield","tablet","tradition","tribe",
+
+  // Materials and substances
+  "alloy","aluminum","brass","brick","bronze","carbon","ceramic","chalk",
+  "clay","copper","cotton","crystal","fabric","foam","glass","granite",
+  "graphite","iron","leather","linen","marble","mercury","nickel","nylon",
+  "paper","plastic","rubber","silicon","silver","steel","stone","thread",
+  "tin","titanium","velvet","wax","wood","wool","zinc",
+
+  // Shapes, patterns, and visual forms
+  "angle","arc","arrow","border","circle","coil","column","cone","cross",
+  "cube","curve","diamond","dot","edge","grid","hexagon","line","loop",
+  "octagon","oval","pattern","pentagon","plane","point","pyramid","rectangle",
+  "ring","spiral","square","stripe","triangle","wave","zigzag",
+
+  // Time and scheduling
+  "agenda","alarm","annual","calendar","century","daily","date","dawn","day",
+  "decade","evening","hour","instant","midday","midnight","minute","moment",
+  "month","morning","night","noon","quarter","schedule","season","second",
+  "sunrise","sunset","timer","today","tomorrow","week","weekend","year",
+  "yesterday",
+
+  // Measurement and quantity
+  "acre","ampere","batch","billion","bundle","centimeter","dozen","gallon",
+  "gram","hectare","inch","kilogram","kilometer","liter","meter","mile",
+  "million","ounce","pair","percent","pound","quart","score","ton","unit",
+  "watt","yard",
+
+  // Weather and atmosphere
+  "breeze","cloud","cyclone","drizzle","fog","frost","gale","hail","haze",
+  "humidity","lightning","mist","monsoon","rain","rainbow","shower","snow",
+  "spark","storm","sunshine","thunder","tornado","vapor","weather","whirlwind",
+  "wind",
+
+  // Geography and terrain
+  "basin","bay","beach","canyon","cape","cavern","cliff","coast","continent",
+  "crater","creek","desert","dune","fjord","glacier","gulf","hill","island",
+  "lagoon","lake","marsh","mesa","mountain","ocean","peninsula","plain",
+  "plateau","reef","ridge","river","shore","summit","swamp","valley","volcano",
+
+  // Animals
+  "alpaca","antelope","badger","beaver","bison","buffalo","camel","capybara",
+  "cheetah","cobra","coyote","dolphin","donkey","elephant","falcon","ferret",
+  "fox","gazelle","gecko","giraffe","gorilla","hamster","hedgehog","heron",
+  "horse","iguana","jaguar","koala","lemur","leopard","lion","lizard",
+  "llama","lobster","lynx","meerkat","mole","monkey","moose","narwhal",
+  "octopus","otter","owl","panda","panther","parrot","penguin","porcupine",
+  "rabbit","raccoon","raven","rhino","seal","shark","sloth","squid",
+  "swan","tiger","turtle","walrus","whale","wolf","wombat","yak","zebra",
+
+  // Descriptive words
+  "agile","alert","ancient","atomic","basic","brave","bright","brisk","broad",
+  "calm","careful","clever","compact","cosmic","crisp","curious","deep",
+  "direct","dynamic","eager","early","electric","elegant","epic","exact",
+  "fast","firm","fresh","friendly","gentle","giant","golden","grand",
+  "happy","hidden","honest","ideal","keen","kind","lively","loyal",
+  "lucky","major","mellow","modern","modular","narrow","nimble","novel",
+  "patient","plain","polished","prime","prompt","quiet","rapid","ready",
+  "robust","royal","sharp","simple","smart","smooth","solid","steady",
+  "swift","tidy","tiny","vivid","warm","wise","witty","young",
+
+  // Colors and appearance
+  "amber","aqua","azure","beige","black","blue","bronze","brown","burgundy",
+  "cerulean","charcoal","coral","crimson","cyan","emerald","gold","gray",
+  "green","indigo","ivory","lavender","magenta","maroon","navy","ochre",
+  "olive","orange","peach","pink","purple","red","ruby","scarlet",
+  "silver","tan","teal","turquoise","vermilion","violet","white","yellow",
+
+  // Unusual and playful words
+  "abracadabra","banter","bazaar","bonanza","boondoggle","brouhaha","bubbles",
+  "bumble","caboodle","capers","chatter","dazzle","doodle","fandango","fiddle",
+  "fizz","flapjack","flibbertigibbet","gadget","gizmo","gobble","gobbledygook",
+  "hoopla","hullabaloo","jamboree","jingle","kerfuffle","knickknack","mumbojumbo",
+  "nincompoop","oddball","pizzazz","popcorn","quibble","razzle","rigmarole",
+  "shindig","sizzle","snazzy","sprocket","thingamajig","tiddlywink","tinker",
+  "trinket","whimsy","whizbang","widget","wiggle","wonky","zany","zippy",
+
+  // Short sender-friendly words
+  "ace","act","air","ant","ape","apt","arc","art","ash","ask",
+  "awe","bad","bag","bar","bat","bay","bee","bit","box","boy",
+  "bud","bus","cab","can","cap","car","cat","cod","cop","cow",
+  "cup","day","den","dew","dig","dim","dog","dot","dry","ear",
+  "eel","egg","elm","end","fan","far","fax","fig","fin","fit",
+  "fix","fly","fog","fox","fun","gap","gas","gem","gig","gum",
+  "hat","hen","hip","hop","hub","ice","ink","jar","jet","job",
+  "joy","key","kid","kit","lab","lap","law","lid","log","map",
+  "mix","mop","mug","net","new","oak","odd","oil","owl","pad",
+  "pan","pen","pet","pie","pin","pod","pop","pot","ram","ray",
+  "red","rod","row","rug","run","sea","sky","son","sun","tag",
+  "tap","tax","tea","tin","tip","top","toy","van","web","yak",
+  "zip","zoo"
+];
+
+/* ---------- Media types with correlated due windows ---------- */
+const mediaCatalog = [
+  // Social media and digital advertising
+  { key:"ig_post", name:"Instagram post (single)", minDays:2, maxDays:4 },
+  { key:"ig_carousel", name:"Instagram carousel (6–10 slides)", minDays:3, maxDays:6 },
+  { key:"story_set", name:"Story set (3 frames)", minDays:2, maxDays:4 },
+  { key:"social_bundle", name:"Social media bundle (5 assets)", minDays:4, maxDays:7 },
+  { key:"social_campaign", name:"Social campaign system (12–15 assets)", minDays:7, maxDays:14 },
+  { key:"paid_social_set", name:"Paid social ad set (6 sizes/variations)", minDays:4, maxDays:8 },
+  { key:"display_ad_set", name:"Display ad set (6 standard sizes)", minDays:4, maxDays:8 },
+  { key:"web_banner_set", name:"Web banner set (IAB sizes)", minDays:4, maxDays:8 },
+
+  // Marketing and promotional design
+  { key:"event_flyer", name:"Event flyer (print + digital)", minDays:4, maxDays:8 },
+  { key:"poster_single", name:"Promotional poster (single concept)", minDays:4, maxDays:8 },
+  { key:"poster_series", name:"Poster series (3 variations)", minDays:6, maxDays:12 },
+  { key:"brochure_trifold", name:"Tri-fold brochure", minDays:5, maxDays:10 },
+  { key:"brochure_multi", name:"Multi-page brochure (8 pages)", minDays:8, maxDays:16 },
+  { key:"postcard", name:"Promotional postcard (front + back)", minDays:3, maxDays:6 },
+  { key:"one_sheet", name:"Marketing one-sheet", minDays:4, maxDays:8 },
+  { key:"direct_mail", name:"Direct-mail package (3 pieces)", minDays:7, maxDays:14 },
+  { key:"trade_show_graphics", name:"Trade-show graphics set", minDays:10, maxDays:20 },
+
+  // Email, web, and interface design
+  { key:"email_template", name:"Email newsletter template", minDays:4, maxDays:9 },
+  { key:"landing_page", name:"Landing page design (1 responsive page)", minDays:6, maxDays:12 },
+  { key:"website_small", name:"Small website design (5 page templates)", minDays:15, maxDays:30 },
+  { key:"app_flow", name:"Mobile app flow (6 screens)", minDays:10, maxDays:18 },
+  { key:"dashboard", name:"Dashboard UI (1 view + key states)", minDays:10, maxDays:20 },
+  { key:"ui_component_set", name:"UI component starter set", minDays:8, maxDays:16 },
+
+  // Presentations and information design
+  { key:"pitch_deck", name:"Pitch deck design (10 slides)", minDays:6, maxDays:14 },
+  { key:"presentation_theme", name:"Presentation theme system", minDays:8, maxDays:16 },
+  { key:"presentation_long", name:"Presentation design (25–30 slides)", minDays:12, maxDays:24 },
+  { key:"infographic", name:"Infographic (1 page)", minDays:6, maxDays:12 },
+  { key:"data_visualization_set", name:"Data visualization set (5 charts)", minDays:6, maxDays:12 },
+  { key:"process_diagram", name:"Process or system diagram", minDays:4, maxDays:8 },
+
+  // Brand identity
+  { key:"logo_basic", name:"Logo concepts (3 creative directions)", minDays:7, maxDays:14 },
+  { key:"logo_refinement", name:"Existing logo refinement", minDays:5, maxDays:10 },
+  { key:"brand_minikit", name:"Mini brand kit (logo + palette + typography)", minDays:10, maxDays:18 },
+  { key:"visual_identity", name:"Visual identity system", minDays:15, maxDays:30 },
+  { key:"brand_guidelines", name:"Brand guidelines (8–12 pages)", minDays:14, maxDays:28 },
+  { key:"brand_guidelines_full", name:"Comprehensive brand guidelines (20–30 pages)", minDays:25, maxDays:45 },
+  { key:"stationery_set", name:"Business stationery set", minDays:5, maxDays:10 },
+  { key:"brand_template_set", name:"Editable brand template set (6 templates)", minDays:8, maxDays:16 },
+
+  // Packaging and retail
+  { key:"packaging_simple", name:"Packaging design (single label or panel)", minDays:10, maxDays:18 },
+  { key:"packaging_carton", name:"Folding carton packaging", minDays:12, maxDays:24 },
+  { key:"packaging_system", name:"Packaging system (3 SKUs)", minDays:16, maxDays:35 },
+  { key:"retail_display", name:"Point-of-sale display graphics", minDays:10, maxDays:20 },
+  { key:"product_insert", name:"Product insert or instruction card", minDays:4, maxDays:8 },
+
+  // Publication and editorial design
+  { key:"book_cover", name:"Book cover (front + spine + back)", minDays:10, maxDays:18 },
+  { key:"book_layout_short", name:"Book interior layout (40–60 pages)", minDays:18, maxDays:35 },
+  { key:"novel_layout", name:"Novel interior layout (200–300 pages)", minDays:28, maxDays:60 },
+  { key:"ebook_layout", name:"Reflowable ebook formatting", minDays:10, maxDays:20 },
+  { key:"magazine_layout", name:"Magazine or journal layout (24 pages)", minDays:16, maxDays:30 },
+  { key:"report_layout", name:"Annual report layout (20 pages)", minDays:16, maxDays:30 },
+  { key:"white_paper", name:"White paper layout (8–12 pages)", minDays:8, maxDays:16 },
+  { key:"newsletter_print", name:"Print newsletter layout (4 pages)", minDays:6, maxDays:12 },
+  { key:"resume_template", name:"Resume template (ATS-conscious)", minDays:3, maxDays:7 },
+
+  // Hospitality and environmental graphics
+  { key:"menu_design", name:"Menu design (2 pages)", minDays:6, maxDays:12 },
+  { key:"menu_system", name:"Menu system (print + digital + table formats)", minDays:10, maxDays:20 },
+  { key:"signage_set", name:"Wayfinding signage set (6 signs)", minDays:10, maxDays:20 },
+  { key:"environmental_graphic", name:"Environmental wall graphic", minDays:10, maxDays:22 },
+  { key:"event_signage", name:"Event signage system (8–10 pieces)", minDays:10, maxDays:20 },
+
+  // Entertainment and merchandise
+  { key:"album_cover", name:"Album cover + social teaser", minDays:5, maxDays:10 },
+  { key:"podcast_art", name:"Podcast cover + platform graphics", minDays:5, maxDays:10 },
+  { key:"merch_drop", name:"Merchandise graphics (3 pieces)", minDays:8, maxDays:16 },
+  { key:"tshirt_graphic", name:"T-shirt graphic (1 design)", minDays:5, maxDays:10 },
+
+  // Motion and storyboarding
+  { key:"motion_teaser", name:"Motion teaser (8–12 seconds)", minDays:8, maxDays:16 },
+  { key:"animated_social", name:"Animated social post (5–10 seconds)", minDays:6, maxDays:12 },
+  { key:"logo_animation", name:"Logo animation (3–5 seconds)", minDays:8, maxDays:16 },
+  { key:"explainer_short", name:"Short explainer storyboard (8 frames)", minDays:8, maxDays:16 },
+  { key:"storyboard_long", name:"Campaign storyboard (16 frames)", minDays:12, maxDays:24 },
+
+  // Production and design support
+  { key:"print_preflight", name:"Print preflight and production setup", minDays:2, maxDays:5 },
+  { key:"file_adaptation", name:"Existing design adaptation (5 formats)", minDays:3, maxDays:6 },
+  { key:"template_cleanup", name:"Editable template cleanup and standardization", minDays:4, maxDays:8 },
+  { key:"asset_library", name:"Brand asset library organization", minDays:5, maxDays:12 },
+  { key:"design_audit", name:"Visual design audit with recommendations", minDays:5, maxDays:10 }
+];
+
+/* ---------- Prompt template for Copilot details ---------- */
+function buildCopilotPrompt(project){
+  // Focus: generate a detailed brief and specs from the request meta.
+  return [
+`You are a creative director writing a detailed graphic design brief.`,
+`I accepted a new request with these basics:`,
+`- Sender/Client handle: ${project.sender}`,
+`- Media type: ${project.mediaType}`,
+`- Deadline (due date): ${fmtDate(project.dueAt)}`,
+``,
+`Please generate a full project brief with the following sections:`,
+`1) Project title (short, specific)`,
+`2) Client/business description (industry, size, vibe)`,
+`3) Content (project details, subject matter, any copy or text to include)`,
+`4) Objective (what success looks like)`,
+`5) Target audience (demographics + mindset)`,
+`6) Key message + supporting points`,
+`7) Deliverables list (exact outputs)`,
+`8) Technical specs (dimensions, file formats, color mode, bleed, safe zones, accessibility notes)`,
+`9) Visual direction (tone, style references described in words, typography guidance, color approach)`,
+``,
+`Keep it realistic and actionable. Use bullet points where helpful.`,
+`End with a concise checklist of what to produce.`
+  ].join("\n");
+}
+
+/* ---------- load / save ---------- */
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{
+      const st = JSON.parse(raw);
+      // minimal migration guard
+      if(!st.version) st.version = 1;
+      st.requests ||= [];
+      st.projects ||= [];
+      st.ui ||= { theme: "dark" };
+      return st;
+    }catch(e){
+      console.warn("Bad state, resetting", e);
+    }
+  }
+  // first-run init: create one initial request now
+  const now = Date.now();
+  const init = {
+    version: 1,
+    lastRequestTick: now,
+    requests: [],
+    projects: [],
+    ui: { theme: "dark" }
+  };
+  // add 1 request immediately for a “live server” feel
+  init.requests.push(generateRequest(now));
+  saveState(init);
+  return init;
+}
+function saveState(st){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
+}
+
+/* ---------- request generation logic ---------- */
+function randomSender(){
+  const w1 = senderWords[randInt(0, senderWords.length-1)];
+  let w2 = senderWords[randInt(0, senderWords.length-1)];
+  if(w2 === w1) w2 = senderWords[(senderWords.indexOf(w2)+7) % senderWords.length];
+  return `${w1}_${w2}`;
+}
+function pickMedia(){
+  return mediaCatalog[randInt(0, mediaCatalog.length-1)];
+}
+function generateRequest(receivedAt){
+  const media = pickMedia();
+  const deadlineAt = daysFromNow(media.minDays, media.maxDays);
+  return {
+    id: uid(),
+    sender: randomSender(),
+    mediaKey: media.key,
+    mediaType: media.name,
+    deadlineAt,
+    receivedAt,
+    status: "pending"
+  };
+}
+
+function syncIncomingRequests(state){
+  const now = Date.now();
+  const last = state.lastRequestTick ?? now;
+  const diff = now - last;
+  const n = diff > 0 ? Math.floor(diff / REQUEST_INTERVAL_MS) : 0;
+
+  if(n > 0){
+    for(let i=0;i<n;i++){
+      const receivedAt = last + (i+1)*REQUEST_INTERVAL_MS;
+      state.requests.push(generateRequest(receivedAt));
+    }
+    state.lastRequestTick = last + n*REQUEST_INTERVAL_MS;
+    saveState(state);
+    return n;
+  }
+  return 0;
+}
+
+/* ---------- app UI state ---------- */
+let state = loadState();
+let currentTab = "requests";
+let selectedRequestId = null;
+let selectedProjectId = null;
+let calCursor = new Date(); // month cursor
+let calSelectedDay = null;
+
+/* ---------- theme ---------- */
+function applyTheme(){
+  if(state.ui?.theme === "light"){
+    document.body.classList.add("light");
+  }else{
+    document.body.classList.remove("light");
+  }
+}
+applyTheme();
+
+$("#themeBtn").addEventListener("click", () => {
+  state.ui.theme = (state.ui.theme === "light") ? "dark" : "light";
+  saveState(state);
+  applyTheme();
+});
+
+$("#resetBtn").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  selectedRequestId = null;
+  selectedProjectId = null;
+  calCursor = new Date();
+  calSelectedDay = null;
+  toast("Local data cleared.");
+  render();
+});
+
+/* ---------- clipboard helper (with fallback) ---------- */
+async function copyToClipboard(text){
+  // Try modern clipboard API first
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){ /* fall back */ }
+
+  // Fallback using execCommand
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){
+    return false;
+  }
+}
+
+/* ---------- tabs ---------- */
+$$(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    currentTab = t.dataset.tab;
+    $$(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === currentTab));
+    render();
+  });
+});
+
+/* ---------- core actions ---------- */
+function acceptRequest(reqId){
+  const req = state.requests.find(r => r.id === reqId);
+  if(!req || req.status !== "pending") return;
+
+  req.status = "accepted";
+  req.decidedAt = Date.now();
+
+  const proj = {
+    id: uid(),
+    requestId: req.id,
+    sender: req.sender,
+    mediaKey: req.mediaKey,
+    mediaType: req.mediaType,
+    dueAt: req.deadlineAt,
+    createdAt: Date.now(),
+    status: "awaiting_details",
+    copilotPrompt: "",
+    promptCopiedAt: null,
+    copilotChatUrl: "",
+    notes: "",
+    responseMarkdown: "",
+    responseHtml: "",
+    detailsStep: "awaiting_prompt_action"  // awaiting_prompt_action -> awaiting_response_paste -> done
+  };
+  state.projects.push(proj);
+  req.projectId = proj.id;
+
+  saveState(state);
+  selectedProjectId = proj.id;
+  toast("Accepted → moved to Projects");
+  currentTab = "projects";
+  $$(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === currentTab));
+  render();
+}
+
+function rejectRequest(reqId){
+  const req = state.requests.find(r => r.id === reqId);
+  if(!req || req.status !== "pending") return;
+  req.status = "rejected";
+  req.decidedAt = Date.now();
+  saveState(state);
+  toast("Rejected request");
+  // keep selection sane
+  if(selectedRequestId === reqId) selectedRequestId = null;
+  render();
+}
+
+async function copyProjectPrompt(projId){
+  const proj = state.projects.find(p => p.id === projId);
+  if(!proj) return;
+  const prompt = buildCopilotPrompt(proj);
+  const ok = await copyToClipboard(prompt);
+  if(ok){
+    proj.copilotPrompt = prompt;
+    proj.promptCopiedAt = Date.now();
+    proj.detailsStep = "awaiting_response_paste";
+    saveState(state);
+    toast("Prompt copied. Opening Copilot...");
+    // Open Copilot in a new tab
+    window.open("https://copilot.microsoft.com", "_blank");
+    render();
+  }else{
+    toast("Copy failed (browser restriction). Try HTTPS/localhost.");
+  }
+}
+
+function saveProjectLink(projId, url){
+  const proj = state.projects.find(p => p.id === projId);
+  if(!proj) return;
+  proj.copilotChatUrl = (url || "").trim();
+  if(proj.copilotChatUrl) proj.status = "active";
+  saveState(state);
+  toast("Saved Copilot chat link.");
+  render();
+}
+
+function saveProjectNotes(projId, notes){
+  const proj = state.projects.find(p => p.id === projId);
+  if(!proj) return;
+  proj.notes = notes;
+  saveState(state);
+  toast("Notes saved.");
+}
+
+function saveProjectResponse(projId, markdown){
+  const proj = state.projects.find(p => p.id === projId);
+  if(!proj) return;
+  proj.responseMarkdown = markdown;
+  // Convert markdown to HTML using marked library
+  proj.responseHtml = marked.parse(markdown);
+  proj.detailsStep = "done";
+  proj.status = "active";
+  saveState(state);
+  toast("Response saved and converted to HTML.");
+}
+
+/* ---------- rendering ---------- */
+function updateBadges(){
+  const pending = state.requests.filter(r => r.status === "pending").length;
+  $("#reqBadge").textContent = pending;
+  $("#projBadge").textContent = state.projects.length;
+}
+
+function setChip(text){
+  $("#chipStatus").textContent = text;
+}
+
+function render(){
+  updateBadges();
+
+  // sync requests on every render entry (cheap)
+  const newCount = syncIncomingRequests(state);
+  if(newCount > 0){
+    setChip(`+${newCount} new request${newCount>1?"s":""} received`);
+  }else{
+    const nextIn = REQUEST_INTERVAL_MS - (Date.now() - state.lastRequestTick);
+    const hours = Math.ceil(clamp(nextIn, 0, REQUEST_INTERVAL_MS) / (60*60*1000));
+    setChip(`Next request in ~${hours}h`);
+  }
+
+  // ensure selected IDs exist
+  if(selectedRequestId && !state.requests.some(r => r.id === selectedRequestId)) selectedRequestId = null;
+  if(selectedProjectId && !state.projects.some(p => p.id === selectedProjectId)) selectedProjectId = null;
+
+  // default selection
+  if(currentTab === "requests"){
+    const pending = state.requests.filter(r => r.status === "pending").sort((a,b)=>b.receivedAt-a.receivedAt);
+    if(!selectedRequestId && pending[0]) selectedRequestId = pending[0].id;
+  }
+  if(currentTab === "projects"){
+    const list = state.projects.slice().sort((a,b)=>b.createdAt-a.createdAt);
+    if(!selectedProjectId && list[0]) selectedProjectId = list[0].id;
+  }
+
+  const main = $("#main");
+  main.innerHTML = "";
+
+  if(currentTab === "requests") renderRequests(main);
+  if(currentTab === "projects") renderProjects(main);
+  if(currentTab === "calendar") renderCalendar(main);
+}
+
+/* ---------- Requests tab ---------- */
+function renderRequests(root){
+  const pending = state.requests
+    .filter(r => r.status === "pending")
+    .sort((a,b)=>b.receivedAt-a.receivedAt);
+
+  const acceptedRejectedCount = state.requests.filter(r => r.status !== "pending").length;
+
+  root.innerHTML = `
+    <div class="grid">
+      <div class="panel">
+        <div class="head">
+          <div class="title">Inbox <span>${pending.length} pending</span></div>
+          <div class="meta">Archived: ${acceptedRejectedCount}</div>
+        </div>
+        <div class="list" id="reqList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="head">
+          <div class="title">Request Preview <span>select an item</span></div>
+          <div class="meta"></div>
+        </div>
+        <div class="details" id="reqDetails"></div>
+      </div>
+    </div>
+  `;
+
+  const listEl = $("#reqList");
+  listEl.innerHTML = pending.length ? "" : `
+    <div style="padding:14px;color:var(--muted);">
+      No pending requests right now. Check back later — the server drops a new request every 2 days.
+    </div>
+  `;
+
+  pending.forEach(r => {
+    const el = document.createElement("div");
+    el.className = "item" + (r.id === selectedRequestId ? " selected" : "");
+    el.innerHTML = `
+      <div class="row">
+        <div class="sender">${r.sender}</div>
+        <div class="pill">due ${fmtDate(r.deadlineAt)}</div>
+      </div>
+      <div class="row">
+        <div class="meta">${r.mediaType}</div>
+        <div class="meta">received ${fmtDate(r.receivedAt)}</div>
+      </div>
+    `;
+    el.addEventListener("click", () => {
+      selectedRequestId = r.id;
+      render();
+    });
+    listEl.appendChild(el);
+  });
+
+  renderRequestDetails();
+}
+
+function renderRequestDetails(){
+  const detailsEl = $("#reqDetails");
+  const r = state.requests.find(x => x.id === selectedRequestId && x.status === "pending");
+
+  if(!r){
+    detailsEl.innerHTML = `
+      <div class="hint">
+        Select a pending request to preview it. You can accept or reject it.
+      </div>
+    `;
+    return;
+  }
+
+  detailsEl.innerHTML = `
+    <div class="kv">
+      <div class="k">Sender</div><div class="v mono">${r.sender}</div>
+      <div class="k">Media</div><div class="v">${r.mediaType}</div>
+      <div class="k">Received</div><div class="v">${fmtDateTime(r.receivedAt)}</div>
+      <div class="k">Deadline</div><div class="v">${fmtDate(r.deadlineAt)}</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn good" id="acceptBtn">✅ Accept</button>
+      <button class="btn danger" id="rejectBtn">✖ Reject</button>
+    </div>
+
+    <div class="hint">
+      Accepting turns this request into a Project. Then you can generate a Copilot prompt to get full details.
+    </div>
+  `;
+
+  $("#acceptBtn").addEventListener("click", () => acceptRequest(r.id));
+  $("#rejectBtn").addEventListener("click", () => rejectRequest(r.id));
+}
+
+/* ---------- Projects tab ---------- */
+function renderProjects(root){
+  const projects = state.projects.slice().sort((a,b)=>b.createdAt-a.createdAt);
+
+  root.innerHTML = `
+    <div class="grid">
+      <div class="panel">
+        <div class="head">
+          <div class="title">Current Projects <span>${projects.length}</span></div>
+          <div class="meta">Click to view details</div>
+        </div>
+        <div class="list" id="projList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="head">
+          <div class="title">Project Details <span>Copilot workflow</span></div>
+          <div class="meta"></div>
+        </div>
+        <div class="details" id="projDetails"></div>
+      </div>
+    </div>
+  `;
+
+  const listEl = $("#projList");
+  listEl.innerHTML = projects.length ? "" : `
+    <div style="padding:14px;color:var(--muted);">
+      No projects yet. Accept a request from the Requests tab.
+    </div>
+  `;
+
+  projects.forEach(p => {
+    const el = document.createElement("div");
+    el.className = "item" + (p.id === selectedProjectId ? " selected" : "");
+    el.innerHTML = `
+      <div class="row">
+        <div class="sender">${p.sender}</div>
+        <div class="pill">due ${fmtDate(p.dueAt)}</div>
+      </div>
+      <div class="row">
+        <div class="meta">${p.mediaType}</div>
+        <div class="meta">${p.status.replaceAll("_"," ")}</div>
+      </div>
+    `;
+    el.addEventListener("click", () => {
+      selectedProjectId = p.id;
+      render();
+    });
+    listEl.appendChild(el);
+  });
+
+  renderProjectDetails();
+}
+
+function renderProjectDetails(){
+  const el = $("#projDetails");
+  const p = state.projects.find(x => x.id === selectedProjectId);
+
+  if(!p){
+    el.innerHTML = `<div class="hint">Select a project to see details.</div>`;
+    return;
+  }
+
+  // Step 1: Show only the button to copy prompt and open Copilot
+  if(p.detailsStep === "awaiting_prompt_action"){
+    el.innerHTML = `
+      <div class="kv">
+        <div class="k">Project</div><div class="v"><b>${p.mediaType}</b> for <span class="v mono">${p.sender}</span></div>
+        <div class="k">Due</div><div class="v">${fmtDate(p.dueAt)}</div>
+        <div class="k">Status</div><div class="v">${p.status.replaceAll("_"," ")}</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="copyPromptBtn" style="width:100%;justify-content:center;">Copy Prompt & Open Copilot</button>
+      </div>
+
+      <div class="hint">
+        Click the button to copy the project brief prompt to your clipboard and open Copilot. Then paste the prompt and generate the detailed brief.
+      </div>
+    `;
+    
+    $("#copyPromptBtn").addEventListener("click", () => copyProjectPrompt(p.id));
+    return;
+  }
+
+  // Step 2: Show text area to paste Copilot response
+  if(p.detailsStep === "awaiting_response_paste"){
+    el.innerHTML = `
+      <div class="kv">
+        <div class="k">Project</div><div class="v"><b>${p.mediaType}</b> for <span class="v mono">${p.sender}</span></div>
+        <div class="k">Due</div><div class="v">${fmtDate(p.dueAt)}</div>
+      </div>
+
+      <div>
+        <div class="k" style="margin:10px 0 6px;">Paste Copilot Response (Markdown)</div>
+        <textarea id="responseBox" placeholder="Paste the Copilot-generated brief here. It will be converted to HTML format when you save."></textarea>
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn" id="saveResponseBtn" style="width:100%;justify-content:center;">Save Response</button>
+        </div>
+      </div>
+
+      <div class="hint">
+        Paste the full Copilot response here. When you save, it will be converted from Markdown to HTML format for display.
+      </div>
+    `;
+
+    $("#responseBox").value = p.responseMarkdown || "";
+    $("#saveResponseBtn").addEventListener("click", () => {
+      const md = $("#responseBox").value.trim();
+      if(!md){
+        toast("Response cannot be empty.");
+        return;
+      }
+      saveProjectResponse(p.id, md);
+      render();
+    });
+    return;
+  }
+
+  // Step 3: Show the converted HTML response
+  if(p.detailsStep === "done"){
+    el.innerHTML = `
+      <div class="kv">
+        <div class="k">Project</div><div class="v"><b>${p.mediaType}</b> for <span class="v mono">${p.sender}</span></div>
+        <div class="k">Due</div><div class="v">${fmtDate(p.dueAt)}</div>
+        <div class="k">Status</div><div class="v">${p.status.replaceAll("_"," ")}</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn secondary small" id="editResponseBtn">✏️ Edit Response</button>
+        <button class="btn secondary small" id="printResponseBtn">🖨️ Print</button>
+        <button class="btn secondary small" id="markDoneBtn">✅ Mark Done</button>
+      </div>
+
+      <div style="margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.02);overflow-x:auto;">
+        <div id="responseHtmlDisplay"></div>
+      </div>
+
+      <div class="hint">
+        Your project details have been saved. Click "Edit Response" to make changes.
+      </div>
+    `;
+
+    // Render the HTML content
+    const htmlDisplay = $("#responseHtmlDisplay");
+    htmlDisplay.innerHTML = p.responseHtml || "";
+
+    // Add click handlers
+    $("#editResponseBtn").addEventListener("click", () => {
+      p.detailsStep = "awaiting_response_paste";
+      saveState(state);
+      render();
+    });
+
+    $("#printResponseBtn").addEventListener("click", () => {
+      printProjectResponse(p);
+    });
+
+    $("#markDoneBtn").addEventListener("click", () => {
+      p.status = "done";
+      saveState(state);
+      toast("Project marked done.");
+      render();
+    });
+    return;
+  }
+}
+
+function escapeHtml(str){
+  return (str || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+function printProjectResponse(p){
+  // Create a print-friendly window with the response content
+  const printWindow = window.open("", "", "width=900,height=800");
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Print - ${escapeHtml(p.mediaType)} for ${escapeHtml(p.sender)}</title>
+      <style>
+        :root {
+          --text: #0b1220;
+          --line: #e3e7f5;
+          --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+          --accent: #4f46e5;
+          --accent2: #16a34a;
+          --muted: #4b5a7a;
+        }
+        body {
+          font-family: var(--sans);
+          color: var(--text);
+          background: white;
+          margin: 0;
+          padding: 40px;
+          line-height: 1.6;
+        }
+        .print-header {
+          margin-bottom: 30px;
+          border-bottom: 2px solid var(--line);
+          padding-bottom: 20px;
+        }
+        .print-header h1 {
+          margin: 0;
+          font-size: 24px;
+          color: var(--text);
+        }
+        .print-header .details {
+          margin-top: 10px;
+          font-size: 14px;
+          color: var(--muted);
+        }
+        .print-header .detail-item {
+          display: inline-block;
+          margin-right: 20px;
+        }
+        .print-content {
+          margin-top: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+          margin: 24px 0 12px 0;
+          color: var(--text);
+          line-height: 1.3;
+        }
+        h1 { font-size: 28px; font-weight: 800; }
+        h2 { font-size: 22px; font-weight: 700; }
+        h3 { font-size: 18px; font-weight: 700; }
+        h4, h5, h6 { font-size: 16px; font-weight: 650; }
+        p { margin: 12px 0; }
+        ul, ol {
+          margin: 12px 0 12px 20px;
+        }
+        li { margin: 6px 0; }
+        code {
+          font-family: var(--mono);
+          background: #f5f7ff;
+          color: var(--accent);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 13px;
+        }
+        pre {
+          background: #f5f7ff;
+          border: 1px solid var(--line);
+          border-radius: 6px;
+          padding: 12px;
+          margin: 12px 0;
+          overflow-x: auto;
+        }
+        pre code {
+          background: none;
+          color: var(--text);
+          padding: 0;
+          border-radius: 0;
+          font-size: 12px;
+        }
+        blockquote {
+          border-left: 3px solid var(--accent);
+          margin: 12px 0;
+          padding-left: 12px;
+          color: var(--muted);
+          font-style: italic;
+        }
+        a {
+          color: var(--accent);
+          text-decoration: underline;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 12px 0;
+        }
+        table th, table td {
+          border: 1px solid var(--line);
+          padding: 8px 12px;
+          text-align: left;
+        }
+        table th {
+          background: #f5f7ff;
+          font-weight: 650;
+        }
+        @media print {
+          body { margin: 0; padding: 20px; }
+          .print-header { border-bottom: 1px solid var(--line); padding-bottom: 15px; }
+          h1, h2, h3, h4, h5, h6 { page-break-after: avoid; }
+          blockquote, pre { page-break-inside: avoid; }
+          table { page-break-inside: avoid; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <h1>${escapeHtml(p.mediaType)}</h1>
+        <div class="details">
+          <div class="detail-item"><strong>For:</strong> ${escapeHtml(p.sender)}</div>
+          <div class="detail-item"><strong>Due:</strong> ${fmtDate(p.dueAt)}</div>
+          <div class="detail-item"><strong>Printed:</strong> ${new Date().toLocaleString()}</div>
+        </div>
+      </div>
+      <div class="print-content">
+        ${p.responseHtml}
+      </div>
+    </body>
+    </html>
+  `;
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+  
+  // Wait for content to load before printing
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 250);
+}
+
+/* ---------- Calendar tab ---------- */
+function renderCalendar(root){
+  // month cursor -> first day
+  const year = calCursor.getFullYear();
+  const month = calCursor.getMonth();
+
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay(); // 0 Sun
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  // show a 6-week grid
+  const gridStart = new Date(year, month, 1 - startDow);
+  const monthName = first.toLocaleDateString(undefined, { month:"long", year:"numeric" });
+
+  // Build map of due dates -> projects
+  const dueMap = new Map();
+  state.projects.forEach(p => {
+    const d = new Date(p.dueAt);
+    const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if(!dueMap.has(key)) dueMap.set(key, []);
+    dueMap.get(key).push(p);
+  });
+
+  root.innerHTML = `
+    <div class="calendar">
+      <div class="cal-head">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="btn secondary small" id="prevMonth">←</button>
+          <div class="month">${monthName}</div>
+          <button class="btn secondary small" id="nextMonth">→</button>
+          <button class="btn secondary small" id="todayBtn">Today</button>
+        </div>
+        <div class="meta">Due dates from accepted projects</div>
+      </div>
+
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="drawer" id="dayDrawer" style="display:none;"></div>
+
+      <div class="hint">
+        Calendar shows projects by due date. Accept more requests to populate it.
+      </div>
+    </div>
+  `;
+
+  $("#prevMonth").addEventListener("click", () => { calCursor = new Date(year, month-1, 1); calSelectedDay = null; render(); });
+  $("#nextMonth").addEventListener("click", () => { calCursor = new Date(year, month+1, 1); calSelectedDay = null; render(); });
+  $("#todayBtn").addEventListener("click", () => { calCursor = new Date(); calSelectedDay = null; render(); });
+
+  const grid = $("#calGrid");
+  const dows = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  dows.forEach(d => {
+    const el = document.createElement("div");
+    el.className = "dow";
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  for(let i=0;i<42;i++){
+    const day = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate()+i);
+    const isThisMonth = day.getMonth() === month;
+    const key = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+    const projectsDue = dueMap.get(key) || [];
+
+    const cell = document.createElement("div");
+    cell.className = "day" + (isThisMonth ? "" : " muted");
+
+    const countPill = projectsDue.length ? `<span class="pill">${projectsDue.length}</span>` : `<span></span>`;
+    cell.innerHTML = `
+      <div class="daynum">
+        <span>${day.getDate()}</span>
+        ${countPill}
+      </div>
+      <div class="marks">
+        ${projectsDue.slice(0,2).map(p => `<div class="mark">${escapeHtml(p.sender)} • ${escapeHtml(shorten(p.mediaType, 20))}</div>`).join("")}
+        ${projectsDue.length > 2 ? `<div class="meta">+${projectsDue.length-2} more</div>` : ``}
+      </div>
+    `;
+
+    cell.addEventListener("click", () => {
+      calSelectedDay = key;
+      renderDayDrawer(key, projectsDue);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  // restore drawer if selected
+  if(calSelectedDay){
+    const list = dueMap.get(calSelectedDay) || [];
+    renderDayDrawer(calSelectedDay, list);
+  }
+}
+
+function shorten(s, n){
+  s = s || "";
+  return s.length > n ? s.slice(0, n-1) + "…" : s;
+}
+
+function renderDayDrawer(dayKey, projects){
+  const drawer = $("#dayDrawer");
+  const d = new Date(dayKey);
+  drawer.style.display = "block";
+  drawer.innerHTML = `
+    <h3>${d.toLocaleDateString(undefined, { weekday:"long", year:"numeric", month:"long", day:"numeric" })}</h3>
+    ${projects.length ? projects.map(p => `
+      <div class="p">
+        <div class="row">
+          <div class="sender">${escapeHtml(p.sender)}</div>
+          <div class="pill">${escapeHtml(p.status.replaceAll("_"," "))}</div>
+        </div>
+        <div class="meta" style="margin-top:6px;">${escapeHtml(p.mediaType)}</div>
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn secondary small" data-openproj="${p.id}">Open Project</button>
+          ${p.copilotChatUrl ? `<a class="btn small" style="text-decoration:none;" href="${escapeHtml(p.copilotChatUrl)}" target="_blank" rel="noreferrer">↗ Open Saved Chat</a>` : ""}
+        </div>
+      </div>
+    `).join("") : `<div class="hint">No projects due on this day.</div>`}
+  `;
+
+  drawer.querySelectorAll("[data-openproj]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedProjectId = btn.getAttribute("data-openproj");
+      currentTab = "projects";
+      $$(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === currentTab));
+      render();
+    });
+  });
+}
+
+/* ---------- initial render ---------- */
+render();
+</script>
+</body>
+</html>
